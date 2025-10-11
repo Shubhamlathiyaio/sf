@@ -29,26 +29,22 @@ class InvoicePDFService {
     final pdf = pw.Document();
 
     // Load custom fonts
-    final fontData = await rootBundle.load("assets/fonts/opensans/OpenSans-Regular.ttf");
-    final boldFontData = await rootBundle.load("assets/fonts/opensans/OpenSans-Bold.ttf");
+    final fontData = await rootBundle.load(
+      "assets/fonts/opensans/OpenSans-Regular.ttf",
+    );
+    final boldFontData = await rootBundle.load(
+      "assets/fonts/opensans/OpenSans-Bold.ttf",
+    );
     final ttf = pw.Font.ttf(fontData);
     final boldTtf = pw.Font.ttf(boldFontData);
 
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
-        theme: pw.ThemeData.withFont(
-          base: ttf,
-          bold: boldTtf,
-        ),
+        theme: pw.ThemeData.withFont(base: ttf, bold: boldTtf),
         margin: const pw.EdgeInsets.all(12),
         build: (pw.Context context) {
-          return pw.Container(
-            decoration: pw.BoxDecoration(
-              border: pw.Border.all(color: PdfColors.black, width: 1.5),
-            ),
-            child: _buildInvoiceContent(invoice, customer, company),
-          );
+          return _buildInvoiceContent(invoice, customer, company);
         },
       ),
     );
@@ -69,9 +65,7 @@ class InvoicePDFService {
         _buildInvoiceTitle(),
         _buildInvoiceInfo(invoice, customer, company),
         _buildBillingDetails(customer),
-        pw.Expanded(
-          child: _buildItemsTable(invoice.items),
-        ),
+        pw.Expanded(child: _buildItemsTable(invoice.items)),
         _buildTotalsAndBankDetails(invoice, company),
         _buildTermsAndSignature(company),
       ],
@@ -92,89 +86,108 @@ class InvoicePDFService {
 
   /// Build the header section
   static pw.Widget _buildHeader(Company company) {
-    return pw.Column(
-      children: [
-        // Top religious texts
-        pw.Row(
-          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-          children: [
-            pw.Text(
-              '|| Shree Ganeshay Namah ||',
-              style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
+    return pw.Container(
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(color: PdfColors.black, width: 1.5),
+        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(5)),
+      ),
+      child: pw.Column(
+        children: [
+          pw.Container(
+            color: PdfColors.grey100,
+            padding: const pw.EdgeInsets.only(top: 3, left: 10, right: 10),
+            child: pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text(
+                  '|| Shree Ganeshay Namah ||',
+                  style: pw.TextStyle(
+                    fontWeight: pw.FontWeight.bold,
+                    fontSize: 10,
+                  ),
+                ),
+                pw.Text(
+                  '|| Jay Yogeshwar ||',
+                  style: pw.TextStyle(
+                    fontWeight: pw.FontWeight.bold,
+                    fontSize: 10,
+                  ),
+                ),
+              ],
             ),
-            pw.Text(
-              '|| Jay Yogeshwar ||',
-              style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
-            ),
-          ],
-        ),
-        pw.SizedBox(height: 10),
-        // Main header content
-        pw.Container(
-          padding: const pw.EdgeInsets.only(bottom: 10),
-          decoration: const pw.BoxDecoration(
-            border: pw.Border(bottom: pw.BorderSide(color: PdfColors.black, width: 1.5)),
           ),
-          child: pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: pw.CrossAxisAlignment.center,
-            children: [
-              // Left side: Logo and company details
-              pw.Row(
-                crossAxisAlignment: pw.CrossAxisAlignment.center,
-                children: [
-                  // Logo
-                  pw.Container(
-                    width: 48,
-                    height: 48,
-                    decoration: const pw.BoxDecoration(
-                      color: PdfColors.deepOrange,
-                      borderRadius: pw.BorderRadius.all(pw.Radius.circular(8)),
-                    ),
-                    child: pw.Center(
-                      child: pw.Text(
-                        'SF',
-                        style: pw.TextStyle(
-                          color: PdfColors.white,
-                          fontWeight: pw.FontWeight.bold,
-                          fontSize: 24,
+          pw.SizedBox(height: 10),
+          // Main header content
+          pw.Container(
+            padding: const pw.EdgeInsets.only(bottom: 10, left: 10, right: 10),
+            decoration: const pw.BoxDecoration(
+              border: pw.Border(
+                bottom: pw.BorderSide(color: PdfColors.black, width: 1.5),
+              ),
+            ),
+            child: pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: pw.CrossAxisAlignment.center,
+              children: [
+                // Left side: Logo and company details
+                pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.center,
+                  children: [
+                    // Logo
+                    pw.Container(
+                      width: 48,
+                      height: 48,
+                      decoration: const pw.BoxDecoration(
+                        color: PdfColors.deepOrange,
+                        borderRadius: pw.BorderRadius.all(
+                          pw.Radius.circular(8),
+                        ),
+                      ),
+                      child: pw.Center(
+                        child: pw.Text(
+                          'SF',
+                          style: pw.TextStyle(
+                            color: PdfColors.white,
+                            fontWeight: pw.FontWeight.bold,
+                            fontSize: 24,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  pw.SizedBox(width: 10),
-                  // Company name and address
-                  pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Text(
-                        company.companyName,
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 24),
-                      ),
-                      pw.SizedBox(height: 2),
-                      pw.Text(
-                        company.address,
-                        style: const pw.TextStyle(fontSize: 9),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              // Right side: Contact number
-              pw.Container(
-                padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: pw.BoxDecoration(
-                  border: pw.Border.all(color: PdfColors.black, width: 1.5),
+                    pw.SizedBox(width: 10),
+                    // Company name and address
+                    pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text(
+                          company.companyName,
+                          style: pw.TextStyle(
+                            fontWeight: pw.FontWeight.bold,
+                            fontSize: 24,
+                          ),
+                        ),
+                        pw.SizedBox(height: 2),
+                        pw.Text(
+                          company.address,
+                          style: const pw.TextStyle(fontSize: 9),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                child: pw.Text(
-                  company.mobileNumber,
-                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 18),
-                ),
-              ),
-            ],
+                // Right side: Contact number
+                pw.Text(
+                    company.mobileNumber,
+                    style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  )
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -182,7 +195,6 @@ class InvoicePDFService {
   static pw.Widget _buildInvoiceTitle() {
     return pw.Container(
       padding: const pw.EdgeInsets.symmetric(vertical: 2),
-      margin: const pw.EdgeInsets.only(top: 5),
       decoration: const pw.BoxDecoration(
         border: pw.Border(
           bottom: pw.BorderSide(color: PdfColors.black, width: 1.5),
@@ -210,7 +222,9 @@ class InvoicePDFService {
     return pw.Container(
       padding: const pw.EdgeInsets.fromLTRB(10, 10, 10, 5),
       decoration: const pw.BoxDecoration(
-        border: pw.Border(bottom: pw.BorderSide(color: PdfColors.black, width: 1.5)),
+        border: pw.Border(
+          bottom: pw.BorderSide(color: PdfColors.black, width: 1.5),
+        ),
       ),
       child: pw.Row(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -228,9 +242,17 @@ class InvoicePDFService {
                 mainAxisAlignment: pw.MainAxisAlignment.center,
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  _buildRichText('GST No: ', company.gstNumber, valueColor: PdfColors.red),
+                  _buildRichText(
+                    'GST No: ',
+                    company.gstNumber,
+                    valueColor: PdfColors.red,
+                  ),
                   pw.SizedBox(height: 5),
-                  _buildRichText('State Code: ', company.stateCode, valueColor: PdfColors.red),
+                  _buildRichText(
+                    'State Code: ',
+                    company.stateCode,
+                    valueColor: PdfColors.red,
+                  ),
                 ],
               ),
             ),
@@ -267,7 +289,9 @@ class InvoicePDFService {
     return pw.Container(
       padding: const pw.EdgeInsets.fromLTRB(10, 5, 10, 5),
       decoration: const pw.BoxDecoration(
-        border: pw.Border(bottom: pw.BorderSide(color: PdfColors.black, width: 1.5)),
+        border: pw.Border(
+          bottom: pw.BorderSide(color: PdfColors.black, width: 1.5),
+        ),
       ),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.stretch,
@@ -281,7 +305,10 @@ class InvoicePDFService {
             child: pw.Center(
               child: pw.Text(
                 'BILLING DETAILS',
-                style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11),
+                style: pw.TextStyle(
+                  fontWeight: pw.FontWeight.bold,
+                  fontSize: 11,
+                ),
               ),
             ),
           ),
@@ -318,7 +345,9 @@ class InvoicePDFService {
               ),
               pw.TableRow(
                 children: [
-                  _buildBillingCell('Delivery Address: ${customer.deliveryAddress}'),
+                  _buildBillingCell(
+                    'Delivery Address: ${customer.deliveryAddress}',
+                  ),
                 ],
               ),
             ],
@@ -331,7 +360,14 @@ class InvoicePDFService {
   /// Build items table
   static pw.Widget _buildItemsTable(List<InvoiceItem> items) {
     final tableHeaders = [
-      'Sr', 'Chalan', 'Description', 'Taka', 'HSN', 'Meter', 'Rate', 'Amount'
+      'Sr',
+      'Chalan',
+      'Description',
+      'Taka',
+      'HSN',
+      'Meter',
+      'Rate',
+      'Amount',
     ];
 
     return pw.Container(
@@ -352,11 +388,12 @@ class InvoicePDFService {
           // Header row
           pw.TableRow(
             decoration: const pw.BoxDecoration(color: PdfColors.grey200),
-            children: tableHeaders.map((header) => _buildTableCell(
-              header,
-              isHeader: true,
-              fontSize: 10,
-            )).toList(),
+            children: tableHeaders
+                .map(
+                  (header) =>
+                      _buildTableCell(header, isHeader: true, fontSize: 10),
+                )
+                .toList(),
           ),
           // Item rows
           ...items.asMap().entries.map((entry) {
@@ -367,14 +404,19 @@ class InvoicePDFService {
               children: [
                 _buildTableCell('${item.srNo}'),
                 _buildTableCell(item.chalanNo),
-                _buildTableCell(
-                  item.description,
-                  textAlign: pw.TextAlign.left,
-                ),
+                _buildTableCell(item.description, textAlign: pw.TextAlign.left),
                 _buildTableCell('${item.taka.toInt()}'),
                 _buildTableCell(item.hsnCode),
-                _buildTableCell(item.meter.toStringAsFixed(item.meter.truncateToDouble() == item.meter ? 0 : 2)),
-                _buildTableCell(item.rate.toStringAsFixed(item.rate.truncateToDouble() == item.rate ? 0 : 2)),
+                _buildTableCell(
+                  item.meter.toStringAsFixed(
+                    item.meter.truncateToDouble() == item.meter ? 0 : 2,
+                  ),
+                ),
+                _buildTableCell(
+                  item.rate.toStringAsFixed(
+                    item.rate.truncateToDouble() == item.rate ? 0 : 2,
+                  ),
+                ),
                 _buildTableCell(
                   item.amount.toStringAsFixed(0),
                   textAlign: pw.TextAlign.right,
@@ -415,7 +457,10 @@ class InvoicePDFService {
   }
 
   /// Build totals and bank details section
-  static pw.Widget _buildTotalsAndBankDetails(Invoice invoice, Company company) {
+  static pw.Widget _buildTotalsAndBankDetails(
+    Invoice invoice,
+    Company company,
+  ) {
     return pw.Container(
       padding: const pw.EdgeInsets.fromLTRB(10, 5, 10, 10),
       child: pw.Row(
@@ -433,17 +478,17 @@ class InvoicePDFService {
                 pw.SizedBox(height: 5),
                 pw.Text(
                   invoice.amountInWords.toUpperCase(),
-                  style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+                  style: pw.TextStyle(
+                    fontSize: 10,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
                 ),
               ],
             ),
           ),
           pw.SizedBox(width: 10),
           // Right side - Calculations
-          pw.Expanded(
-            flex: 5,
-            child: _buildCalculationDetails(invoice),
-          ),
+          pw.Expanded(flex: 5, child: _buildCalculationDetails(invoice)),
         ],
       ),
     );
@@ -476,13 +521,21 @@ class InvoicePDFService {
               children: [
                 pw.Text(
                   'Terms and Conditions:',
-                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
+                  style: pw.TextStyle(
+                    fontWeight: pw.FontWeight.bold,
+                    fontSize: 9,
+                  ),
                 ),
                 pw.SizedBox(height: 4),
-                ...terms.map((term) => pw.Padding(
-                      padding: const pw.EdgeInsets.only(bottom: 1),
-                      child: pw.Text(term, style: const pw.TextStyle(fontSize: 8)),
-                    )),
+                ...terms.map(
+                  (term) => pw.Padding(
+                    padding: const pw.EdgeInsets.only(bottom: 1),
+                    child: pw.Text(
+                      term,
+                      style: const pw.TextStyle(fontSize: 8),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -495,17 +548,26 @@ class InvoicePDFService {
               children: [
                 pw.Text(
                   'FOR YOUR COMPANY',
-                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
+                  style: pw.TextStyle(
+                    fontWeight: pw.FontWeight.bold,
+                    fontSize: 10,
+                  ),
                 ),
                 pw.SizedBox(height: 30),
                 pw.Text(
                   'S.D.Lathiya',
-                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
+                  style: pw.TextStyle(
+                    fontWeight: pw.FontWeight.bold,
+                    fontSize: 12,
+                  ),
                 ),
                 pw.Divider(color: PdfColors.black, thickness: 1, height: 1),
                 pw.Text(
                   'Auth Sign.',
-                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
+                  style: pw.TextStyle(
+                    fontWeight: pw.FontWeight.bold,
+                    fontSize: 9,
+                  ),
                 ),
               ],
             ),
@@ -587,13 +649,34 @@ class InvoicePDFService {
         1: pw.FlexColumnWidth(1.5),
       },
       children: [
-        _buildCalculationRow('Discount (7%)', '-${invoice.discount.toStringAsFixed(0)}'),
-        _buildCalculationRow('Oth Less', '-${invoice.otherDeductions.toStringAsFixed(0)}'),
-        _buildCalculationRow('Freight', '+${invoice.freight.toStringAsFixed(2)}'),
-        _buildCalculationRow('Taxable Value', invoice.taxableValue.toStringAsFixed(2)),
-        _buildCalculationRow('I GST (2.5%)', '+${invoice.igstAmount.toStringAsFixed(2)}'),
-        _buildCalculationRow('S GST (2.5%)', '+${invoice.sgstAmount.toStringAsFixed(2)}'),
-        _buildCalculationRow('C GST (2.5%)', '+${invoice.cgstAmount.toStringAsFixed(2)}'),
+        _buildCalculationRow(
+          'Discount (7%)',
+          '-${invoice.discount.toStringAsFixed(0)}',
+        ),
+        _buildCalculationRow(
+          'Oth Less',
+          '-${invoice.otherDeductions.toStringAsFixed(0)}',
+        ),
+        _buildCalculationRow(
+          'Freight',
+          '+${invoice.freight.toStringAsFixed(2)}',
+        ),
+        _buildCalculationRow(
+          'Taxable Value',
+          invoice.taxableValue.toStringAsFixed(2),
+        ),
+        _buildCalculationRow(
+          'I GST (2.5%)',
+          '+${invoice.igstAmount.toStringAsFixed(2)}',
+        ),
+        _buildCalculationRow(
+          'S GST (2.5%)',
+          '+${invoice.sgstAmount.toStringAsFixed(2)}',
+        ),
+        _buildCalculationRow(
+          'C GST (2.5%)',
+          '+${invoice.cgstAmount.toStringAsFixed(2)}',
+        ),
         _buildCalculationRow(
           'Net Amount',
           invoice.netAmount.toStringAsFixed(2),
@@ -603,18 +686,21 @@ class InvoicePDFService {
     );
   }
 
-  static pw.TableRow _buildCalculationRow(String label, String value, {bool isHeader = false}) {
+  static pw.TableRow _buildCalculationRow(
+    String label,
+    String value, {
+    bool isHeader = false,
+  }) {
     return pw.TableRow(
-      decoration: isHeader ? const pw.BoxDecoration(color: PdfColors.grey200) : null,
+      decoration: isHeader
+          ? const pw.BoxDecoration(color: PdfColors.grey200)
+          : null,
       children: [
         pw.Container(
           padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 3),
           child: pw.Text(
             label,
-            style: pw.TextStyle(
-              fontWeight: pw.FontWeight.bold,
-              fontSize: 10,
-            ),
+            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
             textAlign: pw.TextAlign.left,
           ),
         ),
@@ -646,7 +732,9 @@ class InvoicePDFService {
         text,
         style: pw.TextStyle(
           fontSize: fontSize ?? 9,
-          fontWeight: fontWeight ?? (isHeader ? pw.FontWeight.bold : pw.FontWeight.normal),
+          fontWeight:
+              fontWeight ??
+              (isHeader ? pw.FontWeight.bold : pw.FontWeight.normal),
         ),
         textAlign: textAlign ?? pw.TextAlign.center,
         maxLines: 4,
@@ -682,11 +770,8 @@ class InvoicePDFService {
     final directory = await getTemporaryDirectory();
     final file = File('${directory.path}/$fileName.pdf');
     await file.writeAsBytes(pdfBytes);
-    
-    await Share.shareXFiles(
-      [XFile(file.path)],
-      text: 'Invoice: $fileName',
-    );
+
+    await Share.shareXFiles([XFile(file.path)], text: 'Invoice: $fileName');
   }
 
   /// Open PDF with system default app
@@ -694,11 +779,8 @@ class InvoicePDFService {
     final directory = await getTemporaryDirectory();
     final file = File('${directory.path}/$fileName.pdf');
     await file.writeAsBytes(pdfBytes);
-    
-    await Share.shareXFiles(
-      [XFile(file.path)],
-      text: 'Invoice: $fileName',
-    );
+
+    await Share.shareXFiles([XFile(file.path)], text: 'Invoice: $fileName');
   }
 
   /// Preview PDF using printing package (works on all platforms)

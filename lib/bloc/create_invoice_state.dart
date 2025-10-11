@@ -79,9 +79,5 @@ class CreateInvoiceState extends BaseBlocState {
 }
 
 class CreateInvoiceInitialState extends CreateInvoiceState {
-  CreateInvoiceInitialState()
-    : super(
-        billDate: DateTime.now(),
-        dueDate: DateTime.now().add(Duration(days: 30)),
-      );
+  CreateInvoiceInitialState() : super();
 }

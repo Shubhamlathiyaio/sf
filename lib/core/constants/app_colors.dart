@@ -50,3 +50,7 @@ class AppColors {
   static const Color xff725ddb = Color(0xff725ddb);
   static const Color xff33a752 = Color(0xff33a752);
 }
+
+class PdfColors{
+  // static const PdfColors xffF2F2F2 = Color(0xffF2F2F2);
+}
