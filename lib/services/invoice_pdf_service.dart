@@ -11,6 +11,9 @@ import '../models/invoice.dart';
 import '../models/customer.dart';
 import '../models/company.dart';
 
+final bm = BorderMaster();
+final lm = LineMaster();
+
 class InvoicePDFService {
   /// Generate PDF for invoice that matches SHUBHAM FASHION structure
   static Future<Uint8List> generateInvoicePDF({
@@ -62,40 +65,34 @@ class InvoicePDFService {
       crossAxisAlignment: pw.CrossAxisAlignment.stretch,
       children: [
         _buildHeader(company),
-        _buildInvoiceTitle(),
+        _buildInvoiceTitle('INVOICE'),
         _buildInvoiceInfo(invoice, customer, company),
+        _buildInvoiceTitle('BILLING DETAILS'),
         _buildBillingDetails(customer),
-        pw.Expanded(child: _buildItemsTable(invoice.items)),
+        pw.SizedBox(height: 10),
+        _buildItemsTable(invoice.items),
+        // I want to set the blow thing at the bottom of the page n 
         _buildTotalsAndBankDetails(invoice, company),
         _buildTermsAndSignature(company),
       ],
     );
   }
 
-  static pw.Widget _buildBillingCell(String text) {
-    return pw.Container(
-      padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-      child: pw.Text(
-        text,
-        style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
-        maxLines: 2,
-        overflow: pw.TextOverflow.clip,
-      ),
-    );
-  }
-
   /// Build the header section
   static pw.Widget _buildHeader(Company company) {
     return pw.Container(
-      decoration: pw.BoxDecoration(
-        border: pw.Border.all(color: PdfColors.black, width: 1.5),
-        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(5)),
-      ),
+      decoration: bm.circularBorderAll,
       child: pw.Column(
         children: [
           pw.Container(
+            margin: pw.EdgeInsets.all(2),
             color: PdfColors.grey100,
-            padding: const pw.EdgeInsets.only(top: 3, left: 10, right: 10),
+            padding: const pw.EdgeInsets.only(
+              top: 3,
+              left: 10,
+              right: 10,
+              bottom: 3,
+            ),
             child: pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
@@ -118,13 +115,8 @@ class InvoicePDFService {
           ),
           pw.SizedBox(height: 10),
           // Main header content
-          pw.Container(
+          pw.Padding(
             padding: const pw.EdgeInsets.only(bottom: 10, left: 10, right: 10),
-            decoration: const pw.BoxDecoration(
-              border: pw.Border(
-                bottom: pw.BorderSide(color: PdfColors.black, width: 1.5),
-              ),
-            ),
             child: pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               crossAxisAlignment: pw.CrossAxisAlignment.center,
@@ -155,34 +147,34 @@ class InvoicePDFService {
                       ),
                     ),
                     pw.SizedBox(width: 10),
+                    pw.Text(
+                      company.companyName,
+                      style: pw.TextStyle(
+                        fontWeight: pw.FontWeight.bold,
+                        fontSize: 24,
+                      ),
+                    ),
+
                     // Company name and address
-                    pw.Column(
-                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                      children: [
-                        pw.Text(
-                          company.companyName,
-                          style: pw.TextStyle(
-                            fontWeight: pw.FontWeight.bold,
-                            fontSize: 24,
-                          ),
-                        ),
-                        pw.SizedBox(height: 2),
-                        pw.Text(
-                          company.address,
-                          style: const pw.TextStyle(fontSize: 9),
-                        ),
-                      ],
+                  ],
+                ),
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+                  children: [
+                    // Right side: Contact number
+                    pw.Text(
+                      company.mobileNumber,
+                      style: pw.TextStyle(
+                        fontWeight: pw.FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                    pw.Text(
+                      company.address,
+                      style: const pw.TextStyle(fontSize: 9),
                     ),
                   ],
                 ),
-                // Right side: Contact number
-                pw.Text(
-                    company.mobileNumber,
-                    style: pw.TextStyle(
-                      fontWeight: pw.FontWeight.bold,
-                      fontSize: 18,
-                    ),
-                  )
               ],
             ),
           ),
@@ -192,17 +184,12 @@ class InvoicePDFService {
   }
 
   /// Build the invoice title
-  static pw.Widget _buildInvoiceTitle() {
-    return pw.Container(
-      padding: const pw.EdgeInsets.symmetric(vertical: 2),
-      decoration: const pw.BoxDecoration(
-        border: pw.Border(
-          bottom: pw.BorderSide(color: PdfColors.black, width: 1.5),
-        ),
-      ),
+  static pw.Widget _buildInvoiceTitle(String label) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.all(8),
       child: pw.Center(
         child: pw.Text(
-          'INVOICE',
+          label,
           style: pw.TextStyle(
             fontSize: 16,
             fontWeight: pw.FontWeight.bold,
@@ -220,24 +207,14 @@ class InvoicePDFService {
     Company company,
   ) {
     return pw.Container(
-      padding: const pw.EdgeInsets.fromLTRB(10, 10, 10, 5),
-      decoration: const pw.BoxDecoration(
-        border: pw.Border(
-          bottom: pw.BorderSide(color: PdfColors.black, width: 1.5),
-        ),
-      ),
+      decoration: bm.circularBorderAll,
       child: pw.Row(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           // Left side - GST Info
           pw.Expanded(
-            flex: 4,
-            child: pw.Container(
-              height: 60,
-              padding: const pw.EdgeInsets.all(8),
-              decoration: pw.BoxDecoration(
-                border: pw.Border.all(color: PdfColors.black, width: 1),
-              ),
+            child: pw.Padding(
+              padding: pw.EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               child: pw.Column(
                 mainAxisAlignment: pw.MainAxisAlignment.center,
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -257,26 +234,45 @@ class InvoicePDFService {
               ),
             ),
           ),
-          pw.SizedBox(width: 10),
+          lm.verticalLine(45),
           // Right side - Bill Info
           pw.Expanded(
-            flex: 5,
-            child: pw.Table(
-              columnWidths: const {
-                0: pw.FlexColumnWidth(1.4),
-                1: pw.FlexColumnWidth(2),
-              },
-              children: [
-                _buildInfoTableRow(
-                  'Bill No:',
-                  invoice.invoiceNumber,
-                  valueColor: PdfColors.red,
-                  valueFontSize: 14,
-                ),
-                _buildInfoTableRow('Date:', _formatDate(invoice.invoiceDate)),
-                _buildInfoTableRow('Due Date:', _formatDate(invoice.dueDate)),
-                _buildInfoTableRow('Due Days:', '${invoice.dueDays} Days'),
-              ],
+            child: pw.Padding(
+              padding: pw.EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              child: pw.Row(
+                children: [
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      _buildInfoTableRow(
+                        'Bill No: ',
+                        invoice.invoiceNumber,
+                        valueColor: PdfColors.red,
+                        valueFontSize: 14,
+                      ),
+                      _buildInfoTableRow(
+                        'Date: ',
+                        _formatDate(invoice.invoiceDate),
+                      ),
+                    ],
+                  ),
+                  pw.SizedBox(width: 50),
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      _buildInfoTableRow(
+                        'Due Date: ',
+                        _formatDate(invoice.dueDate),
+                      ),
+                      pw.SizedBox(height: 1),
+                      _buildInfoTableRow(
+                        'Due Days: ',
+                        '${invoice.dueDays} Days',
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -287,77 +283,57 @@ class InvoicePDFService {
   /// Build billing details section
   static pw.Widget _buildBillingDetails(Customer customer) {
     return pw.Container(
-      padding: const pw.EdgeInsets.fromLTRB(10, 5, 10, 5),
-      decoration: const pw.BoxDecoration(
-        border: pw.Border(
-          bottom: pw.BorderSide(color: PdfColors.black, width: 1.5),
-        ),
-      ),
+      decoration: bm.circularBorderAll,
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.stretch,
         children: [
-          // Title
-          pw.Container(
-            padding: const pw.EdgeInsets.all(2),
-            decoration: pw.BoxDecoration(
-              border: pw.Border.all(color: PdfColors.black, width: 1),
-            ),
-            child: pw.Center(
-              child: pw.Text(
-                'BILLING DETAILS',
-                style: pw.TextStyle(
-                  fontWeight: pw.FontWeight.bold,
-                  fontSize: 11,
-                ),
-              ),
-            ),
-          ),
           // Details Table
-          pw.Table(
-            border: pw.TableBorder.all(color: PdfColors.black, width: 1),
-            columnWidths: const {
-              0: pw.FlexColumnWidth(2.5),
-              1: pw.FlexColumnWidth(2),
-              2: pw.FlexColumnWidth(1.5),
-            },
-            children: [
-              pw.TableRow(
-                children: [
-                  _buildBillingCell('M/S: ${customer.firmName}'),
-                  _buildBillingCell('GST No: ${customer.gstNumber}'),
-                  _buildBillingCell('Mo: ${customer.mobileNumber}'),
-                ],
-              ),
-            ],
-          ),
-          pw.Table(
-            border: const pw.TableBorder(
-              left: pw.BorderSide(width: 1),
-              right: pw.BorderSide(width: 1),
-              bottom: pw.BorderSide(width: 1),
-              horizontalInside: pw.BorderSide(width: 1),
-            ),
-            children: [
-              pw.TableRow(
-                children: [
-                  _buildBillingCell('Ofc Address: ${customer.firmAddress}'),
-                ],
-              ),
-              pw.TableRow(
-                children: [
-                  _buildBillingCell(
-                    'Delivery Address: ${customer.deliveryAddress}',
+          pw.Padding(
+            padding: const pw.EdgeInsets.symmetric(horizontal: 5),
+            child: pw.Row(
+              children: [
+                pw.Expanded(
+                  flex: 7,
+                  child: pw.Padding(
+                    padding: const pw.EdgeInsets.symmetric(horizontal: 5),
+                    child: _buildRichText('M/S: ', customer.firmName),
                   ),
-                ],
-              ),
-            ],
+                ),
+                lm.verticalLine(30),
+                pw.Expanded(
+                  flex: 4,
+                  child: pw.Padding(
+                    padding: const pw.EdgeInsets.symmetric(horizontal: 5),
+                    child: _buildRichText('GST No: ', customer.gstNumber),
+                  ),
+                ),
+                lm.verticalLine(30),
+                pw.Expanded(
+                  flex: 3,
+                  child: pw.Padding(
+                    padding: const pw.EdgeInsets.symmetric(horizontal: 5),
+                    child: _buildRichText('Mo: ', customer.mobileNumber),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          lm.horizontalLine(),
+          pw.Padding(
+            padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                _buildRichText('Ofc Address: ', customer.firmAddress),
+                _buildRichText('Delivery Address: ', customer.deliveryAddress),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  /// Build items table
   static pw.Widget _buildItemsTable(List<InvoiceItem> items) {
     final tableHeaders = [
       'Sr',
@@ -371,87 +347,152 @@ class InvoicePDFService {
     ];
 
     return pw.Container(
-      padding: const pw.EdgeInsets.fromLTRB(10, 0, 10, 0),
-      child: pw.Table(
-        border: pw.TableBorder.all(color: PdfColors.black, width: 1),
-        columnWidths: const {
-          0: pw.FlexColumnWidth(0.5),
-          1: pw.FlexColumnWidth(0.6),
-          2: pw.FlexColumnWidth(3),
-          3: pw.FlexColumnWidth(0.6),
-          4: pw.FlexColumnWidth(0.8),
-          5: pw.FlexColumnWidth(1),
-          6: pw.FlexColumnWidth(0.8),
-          7: pw.FlexColumnWidth(1.2),
-        },
-        children: [
-          // Header row
-          pw.TableRow(
-            decoration: const pw.BoxDecoration(color: PdfColors.grey200),
-            children: tableHeaders
-                .map(
-                  (header) =>
-                      _buildTableCell(header, isHeader: true, fontSize: 10),
-                )
-                .toList(),
+      margin: const pw.EdgeInsets.fromLTRB(0, 5, 0, 5),
+      decoration: bm.circularBorderAll,
+      child: pw.ClipRRect(
+        horizontalRadius: bm.radius,
+        verticalRadius: bm.radius,
+        child: pw.Table(
+          border: pw.TableBorder.symmetric(
+            inside: const pw.BorderSide(color: PdfColors.black, width: 1),
           ),
-          // Item rows
-          ...items.asMap().entries.map((entry) {
-            final index = entry.key;
-            final item = entry.value;
-            return pw.TableRow(
-              verticalAlignment: pw.TableCellVerticalAlignment.top,
+          columnWidths: const {
+            0: pw.FlexColumnWidth(0.5),
+            1: pw.FlexColumnWidth(0.6),
+            2: pw.FlexColumnWidth(3),
+            3: pw.FlexColumnWidth(0.6),
+            4: pw.FlexColumnWidth(0.8),
+            5: pw.FlexColumnWidth(1),
+            6: pw.FlexColumnWidth(0.8),
+            7: pw.FlexColumnWidth(1.2),
+          },
+          children: [
+            // Header row
+            pw.TableRow(
+              decoration: const pw.BoxDecoration(color: PdfColors.grey200),
+              children: tableHeaders
+                  .map(
+                    (header) => pw.Container(
+                      padding: const pw.EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 5,
+                      ),
+                      child: pw.Text(
+                        header,
+                        style: pw.TextStyle(
+                          fontSize: 10,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                        textAlign: pw.TextAlign.center,
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+            // Item rows
+            ...items.asMap().entries.map((entry) {
+              final item = entry.value;
+
+              // Split description into lines
+              final descriptionLines = item.description.split('\n');
+
+              return pw.TableRow(
+                verticalAlignment: pw.TableCellVerticalAlignment.middle,
+                children: [
+                  _buildFlexibleTableCell('${item.srNo}'),
+                  _buildFlexibleTableCell(item.chalanNo),
+                  // Multi-line description with flexible height
+                  pw.Container(
+                    padding: const pw.EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 8,
+                    ),
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      mainAxisSize: pw.MainAxisSize.min,
+                      children: descriptionLines
+                          .map(
+                            (line) => pw.Padding(
+                              padding: const pw.EdgeInsets.only(bottom: 2),
+                              child: pw.Text(
+                                line.trim(),
+                                style: const pw.TextStyle(fontSize: 9),
+                                textAlign: pw.TextAlign.left,
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ),
+                  _buildFlexibleTableCell('${item.taka.toInt()}'),
+                  _buildFlexibleTableCell(item.hsnCode),
+                  _buildFlexibleTableCell(
+                    item.meter.toStringAsFixed(
+                      item.meter.truncateToDouble() == item.meter ? 0 : 2,
+                    ),
+                  ),
+                  _buildFlexibleTableCell(
+                    item.rate.toStringAsFixed(
+                      item.rate.truncateToDouble() == item.rate ? 0 : 2,
+                    ),
+                  ),
+                  _buildFlexibleTableCell(
+                    item.amount.toStringAsFixed(0),
+                    textAlign: pw.TextAlign.right,
+                  ),
+                ],
+              );
+            }),
+            // Subtotal row
+            pw.TableRow(
+              decoration: const pw.BoxDecoration(color: PdfColors.grey100),
               children: [
-                _buildTableCell('${item.srNo}'),
-                _buildTableCell(item.chalanNo),
-                _buildTableCell(item.description, textAlign: pw.TextAlign.left),
-                _buildTableCell('${item.taka.toInt()}'),
-                _buildTableCell(item.hsnCode),
-                _buildTableCell(
-                  item.meter.toStringAsFixed(
-                    item.meter.truncateToDouble() == item.meter ? 0 : 2,
-                  ),
-                ),
-                _buildTableCell(
-                  item.rate.toStringAsFixed(
-                    item.rate.truncateToDouble() == item.rate ? 0 : 2,
-                  ),
-                ),
-                _buildTableCell(
-                  item.amount.toStringAsFixed(0),
+                _buildFlexibleTableCell(''),
+                _buildFlexibleTableCell(''),
+                _buildFlexibleTableCell(
+                  'Subtotal',
                   textAlign: pw.TextAlign.right,
+                  fontWeight: pw.FontWeight.bold,
+                  fontSize: 10,
+                ),
+                _buildFlexibleTableCell(''),
+                _buildFlexibleTableCell(''),
+                _buildFlexibleTableCell(
+                  _getTotalMeter(items).toString(),
+                  fontWeight: pw.FontWeight.bold,
+                  fontSize: 10,
+                ),
+                _buildFlexibleTableCell(''),
+                _buildFlexibleTableCell(
+                  _getSubtotal(items).toStringAsFixed(0),
+                  textAlign: pw.TextAlign.right,
+                  fontWeight: pw.FontWeight.bold,
+                  fontSize: 10,
                 ),
               ],
-            );
-          }),
-          // Subtotal row
-          pw.TableRow(
-            children: [
-              _buildTableCell(''),
-              _buildTableCell(''),
-              _buildTableCell(
-                'Subtotal',
-                textAlign: pw.TextAlign.right,
-                fontWeight: pw.FontWeight.bold,
-                fontSize: 10,
-              ),
-              _buildTableCell(''),
-              _buildTableCell(''),
-              _buildTableCell(
-                _getTotalMeter(items).toString(),
-                fontWeight: pw.FontWeight.bold,
-                fontSize: 10,
-              ),
-              _buildTableCell(''),
-              _buildTableCell(
-                _getSubtotal(items).toStringAsFixed(0),
-                textAlign: pw.TextAlign.right,
-                fontWeight: pw.FontWeight.bold,
-                fontSize: 10,
-              ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Add this new helper method for flexible table cells
+  static pw.Widget _buildFlexibleTableCell(
+    String text, {
+    pw.TextAlign? textAlign,
+    double? fontSize,
+    pw.FontWeight? fontWeight,
+  }) {
+    return pw.Container(
+      padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+      child: pw.Text(
+        text,
+        style: pw.TextStyle(
+          fontSize: fontSize ?? 9,
+          fontWeight: fontWeight ?? pw.FontWeight.normal,
+        ),
+        textAlign: textAlign ?? pw.TextAlign.center,
       ),
     );
   }
@@ -578,33 +619,28 @@ class InvoicePDFService {
   }
 
   // Helper methods
-  static pw.TableRow _buildInfoTableRow(
+  static pw.Widget _buildInfoTableRow(
     String label,
     String value, {
     PdfColor? valueColor,
     double? valueFontSize,
   }) {
-    return pw.TableRow(
+    return pw.Row(
       children: [
-        pw.Padding(
-          padding: const pw.EdgeInsets.symmetric(vertical: 2, horizontal: 4),
-          child: pw.Text(
-            label,
-            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
-            textAlign: pw.TextAlign.left,
-          ),
+        pw.Text(
+          label,
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
+          textAlign: pw.TextAlign.left,
         ),
-        pw.Padding(
-          padding: const pw.EdgeInsets.symmetric(vertical: 2, horizontal: 4),
-          child: pw.Text(
-            value,
-            style: pw.TextStyle(
-              fontWeight: pw.FontWeight.bold,
-              color: valueColor,
-              fontSize: valueFontSize ?? 10,
-            ),
-            textAlign: pw.TextAlign.left,
+        pw.SizedBox(width: 4),
+        pw.Text(
+          value,
+          style: pw.TextStyle(
+            fontWeight: pw.FontWeight.bold,
+            color: valueColor,
+            fontSize: valueFontSize ?? 10,
           ),
+          textAlign: pw.TextAlign.left,
         ),
       ],
     );
@@ -797,5 +833,158 @@ class InvoicePDFService {
       onLayout: (PdfPageFormat format) async => pdfBytes,
       name: title,
     );
+  }
+}
+
+// This is the border master class this help me to quickly set the border with width, radius, color, topOnly, bottomOnly, leftOnly, rightOnly, horizontal, vertical, allSides and also onlys for the radius ex[topLeft, bottomRight etc ]
+class BorderMaster {
+  final double width;
+  final double radius;
+  final PdfColor color;
+
+  BorderMaster({
+    this.width = 1.5,
+    this.radius = 5,
+    this.color = PdfColors.black,
+  });
+
+  // Now I think we have to update the border styles with using the radius and width and color
+  pw.BoxDecoration get circularBorderAll {
+    return pw.BoxDecoration(
+      border: pw.Border.all(color: color, width: width),
+      borderRadius: pw.BorderRadius.all(pw.Radius.circular(radius)),
+    );
+  }
+
+  // border Top
+  pw.BoxDecoration get circularBorderTopOnly {
+    return pw.BoxDecoration(
+      border: pw.Border(
+        top: pw.BorderSide(color: color, width: width),
+      ),
+      borderRadius: BorderMaster().topRadius,
+    );
+  }
+
+  // border Bottom
+  pw.BoxDecoration get circularBorderBottomOnly {
+    return pw.BoxDecoration(
+      border: pw.Border(
+        bottom: pw.BorderSide(color: color, width: width),
+      ),
+      borderRadius: BorderMaster().bottomRadius,
+    );
+  }
+
+  // border Left
+  pw.BoxDecoration get circularBorderLeftOnly {
+    return pw.BoxDecoration(
+      border: pw.Border(
+        left: pw.BorderSide(color: color, width: width),
+      ),
+      borderRadius: BorderMaster().leftRadius,
+    );
+  }
+
+  // border Right
+  pw.BoxDecoration get circularBorderRightOnly {
+    return pw.BoxDecoration(
+      border: pw.Border(
+        right: pw.BorderSide(color: color, width: width),
+      ),
+      borderRadius: BorderMaster().rightRadius,
+    );
+  }
+
+  // border Horizontal
+  pw.BoxDecoration get circularBorderHorizontal {
+    return pw.BoxDecoration(
+      border: pw.Border(
+        top: pw.BorderSide(color: color, width: width),
+        bottom: pw.BorderSide(color: color, width: width),
+      ),
+      borderRadius: BorderMaster().allRadius,
+    );
+  }
+
+  // border Vertical
+  pw.BoxDecoration get circularBorderVertical {
+    return pw.BoxDecoration(
+      border: pw.Border(
+        left: pw.BorderSide(color: color, width: width),
+        right: pw.BorderSide(color: color, width: width),
+      ),
+      borderRadius: BorderMaster().allRadius,
+    );
+  }
+
+  // Here are the fixd radius onlys
+
+  pw.BorderRadius get onlyTopLeftRadius {
+    return pw.BorderRadius.only(topLeft: pw.Radius.circular(radius));
+  }
+
+  pw.BorderRadius get onlyTopRightRadius {
+    return pw.BorderRadius.only(topRight: pw.Radius.circular(radius));
+  }
+
+  pw.BorderRadius get onlyBottomLeftRadius {
+    return pw.BorderRadius.only(bottomLeft: pw.Radius.circular(radius));
+  }
+
+  pw.BorderRadius get onlyBottomRightRadius {
+    return pw.BorderRadius.only(bottomRight: pw.Radius.circular(radius));
+  }
+
+  pw.BorderRadius get topRadius {
+    return pw.BorderRadius.only(
+      topLeft: pw.Radius.circular(radius),
+      topRight: pw.Radius.circular(radius),
+    );
+  }
+
+  pw.BorderRadius get bottomRadius {
+    return pw.BorderRadius.only(
+      bottomLeft: pw.Radius.circular(radius),
+      bottomRight: pw.Radius.circular(radius),
+    );
+  }
+
+  pw.BorderRadius get leftRadius {
+    return pw.BorderRadius.only(
+      topLeft: pw.Radius.circular(radius),
+      bottomLeft: pw.Radius.circular(radius),
+    );
+  }
+
+  pw.BorderRadius get rightRadius {
+    return pw.BorderRadius.only(
+      topRight: pw.Radius.circular(radius),
+      bottomRight: pw.Radius.circular(radius),
+    );
+  }
+
+  pw.BorderRadius get allRadius {
+    return pw.BorderRadius.all(pw.Radius.circular(radius));
+  }
+}
+
+// This class give me the lines horizontal and vertical with the custom thickness and color
+class LineMaster {
+  final double thickness;
+  final PdfColor color;
+
+  LineMaster({this.thickness = 1, this.color = PdfColors.black});
+
+  pw.Widget horizontalLine() {
+    return pw.Container(
+      width: double.infinity,
+      height: thickness,
+      color: color,
+    );
+  }
+
+  pw.Widget verticalLine(double height) {
+    return pw.Container(width: thickness, height: height, color: color);
   }
 }
