@@ -1,7 +1,5 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -71,8 +69,8 @@ class InvoicePDFService {
         _buildBillingDetails(customer),
         pw.SizedBox(height: 10),
         _buildItemsTable(invoice.items),
-        // I want to set the blow thing at the bottom of the page n 
         _buildTotalsAndBankDetails(invoice, company),
+        pw.Expanded(child: pw.SizedBox()),
         _buildTermsAndSignature(company),
       ],
     );
@@ -347,8 +345,14 @@ class InvoicePDFService {
     ];
 
     return pw.Container(
-      margin: const pw.EdgeInsets.fromLTRB(0, 5, 0, 5),
-      decoration: bm.circularBorderAll,
+      margin: const pw.EdgeInsets.only(top: 5),
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(color: PdfColors.black, width: 1.5),
+        borderRadius: pw.BorderRadius.only(
+          topLeft: pw.Radius.circular(5),
+          topRight: pw.Radius.circular(5),
+        ),
+      ),
       child: pw.ClipRRect(
         horizontalRadius: bm.radius,
         verticalRadius: bm.radius,
@@ -447,11 +451,15 @@ class InvoicePDFService {
             pw.TableRow(
               decoration: const pw.BoxDecoration(color: PdfColors.grey100),
               children: [
-                _buildFlexibleTableCell(''),
+                pw.Container(
+                  padding: const pw.EdgeInsets.symmetric(vertical: 15),
+
+                  decoration: pw.BoxDecoration(border: bm.allSides),
+                ),
                 _buildFlexibleTableCell(''),
                 _buildFlexibleTableCell(
                   'Subtotal',
-                  textAlign: pw.TextAlign.right,
+                  textAlign: pw.TextAlign.left,
                   fontWeight: pw.FontWeight.bold,
                   fontSize: 10,
                 ),
@@ -463,11 +471,15 @@ class InvoicePDFService {
                   fontSize: 10,
                 ),
                 _buildFlexibleTableCell(''),
-                _buildFlexibleTableCell(
-                  _getSubtotal(items).toStringAsFixed(0),
-                  textAlign: pw.TextAlign.right,
-                  fontWeight: pw.FontWeight.bold,
-                  fontSize: 10,
+
+                pw.Container(
+                  decoration: pw.BoxDecoration(border: bm.allSides),
+                  child: _buildFlexibleTableCell(
+                    _getSubtotal(items).toStringAsFixed(0),
+                    textAlign: pw.TextAlign.right,
+                    fontWeight: pw.FontWeight.bold,
+                    fontSize: 10,
+                  ),
                 ),
               ],
             ),
@@ -503,33 +515,66 @@ class InvoicePDFService {
     Company company,
   ) {
     return pw.Container(
-      padding: const pw.EdgeInsets.fromLTRB(10, 5, 10, 10),
       child: pw.Row(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           // Left side - Bank details and amount in words
           pw.Expanded(
-            flex: 6,
-            child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                _buildBankDetails(company),
-                pw.SizedBox(height: 5),
-                _buildRichText('Remark: ', invoice.notes),
-                pw.SizedBox(height: 5),
-                pw.Text(
-                  invoice.amountInWords.toUpperCase(),
-                  style: pw.TextStyle(
-                    fontSize: 10,
-                    fontWeight: pw.FontWeight.bold,
+            child: pw.Container(
+              height: 164, //Limited height
+
+              decoration: pw.BoxDecoration(
+                border: bm.allSides,
+                borderRadius: bm.onlyBottomLeftRadius,
+              ),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+
+                children: [
+                  _buildBankDetails(company),
+
+                  pw.Spacer(),
+                  pw.Container(
+                    padding: const pw.EdgeInsets.symmetric(horizontal: 8),
+                    height: 25,
+                    width: double.infinity,
+                    decoration: pw.BoxDecoration(border: bm.horizontal),
+                    child: pw.Expanded(
+                      child: pw.Align(
+                        alignment: pw.Alignment.centerLeft,
+                        child: _buildRichText('Remark: ', invoice.notes),
+                      ),
+                    ),
                   ),
-                ),
-              ],
+
+                  pw.Container(
+                    alignment: pw.Alignment.centerLeft,
+                    height: 25,
+                    width: double.infinity,
+                    decoration: pw.BoxDecoration(
+                      border: bm.allSides,
+                      borderRadius: bm.onlyBottomLeftRadius,
+                      color: PdfColor.fromHex('#F2F2F2'),
+                    ),
+                    child: pw.Expanded(
+                      child: pw.Padding(
+                        padding: const pw.EdgeInsets.symmetric(horizontal: 8),
+                        child: pw.Text(
+                          invoice.amountInWords.toUpperCase(),
+                          style: pw.TextStyle(
+                            fontSize: 10,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          pw.SizedBox(width: 10),
           // Right side - Calculations
-          pw.Expanded(flex: 5, child: _buildCalculationDetails(invoice)),
+          pw.Expanded(child: _buildCalculationDetails(invoice)),
         ],
       ),
     );
@@ -548,9 +593,6 @@ class InvoicePDFService {
     return pw.Container(
       padding: const pw.EdgeInsets.fromLTRB(10, 5, 10, 5),
       margin: const pw.EdgeInsets.only(top: 5),
-      decoration: const pw.BoxDecoration(
-        border: pw.Border(top: pw.BorderSide(color: PdfColors.black, width: 1)),
-      ),
       child: pw.Row(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
@@ -666,71 +708,98 @@ class InvoicePDFService {
   }
 
   static pw.Widget _buildBankDetails(Company company) {
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        _buildRichText('Bank: ', company.bankName),
-        _buildRichText('Branch: ', company.branchName),
-        _buildRichText('A/C: ', company.accountNumber),
-        _buildRichText('IFSC: ', company.ifscCode),
-      ],
+    return pw.Padding(
+      padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
+        children: [
+          _buildRichText('Bank: ', company.bankName),
+          pw.SizedBox(height: 6),
+          _buildRichText('Branch: ', company.branchName),
+          pw.SizedBox(height: 6),
+          _buildRichText('A/C: ', company.accountNumber),
+          pw.SizedBox(height: 6),
+          _buildRichText('IFSC: ', company.ifscCode),
+        ],
+      ),
     );
   }
 
   static pw.Widget _buildCalculationDetails(Invoice invoice) {
-    return pw.Table(
-      border: pw.TableBorder.all(color: PdfColors.black, width: 1),
-      columnWidths: const {
-        0: pw.FlexColumnWidth(2.5),
-        1: pw.FlexColumnWidth(1.5),
-      },
-      children: [
-        _buildCalculationRow(
-          'Discount (7%)',
-          '-${invoice.discount.toStringAsFixed(0)}',
-        ),
-        _buildCalculationRow(
-          'Oth Less',
-          '-${invoice.otherDeductions.toStringAsFixed(0)}',
-        ),
-        _buildCalculationRow(
-          'Freight',
-          '+${invoice.freight.toStringAsFixed(2)}',
-        ),
-        _buildCalculationRow(
-          'Taxable Value',
-          invoice.taxableValue.toStringAsFixed(2),
-        ),
-        _buildCalculationRow(
-          'I GST (2.5%)',
-          '+${invoice.igstAmount.toStringAsFixed(2)}',
-        ),
-        _buildCalculationRow(
-          'S GST (2.5%)',
-          '+${invoice.sgstAmount.toStringAsFixed(2)}',
-        ),
-        _buildCalculationRow(
-          'C GST (2.5%)',
-          '+${invoice.cgstAmount.toStringAsFixed(2)}',
-        ),
-        _buildCalculationRow(
-          'Net Amount',
-          invoice.netAmount.toStringAsFixed(2),
-          isHeader: true,
-        ),
-      ],
+    return pw.Container(
+      height: 164, //Limited height
+      decoration: pw.BoxDecoration(
+        border: bm.allSides,
+        borderRadius: bm.onlyBottomRightRadius,
+      ),
+      child: pw.Column(
+        children: [
+          pw.Padding(
+            padding: pw.EdgeInsets.only(left: 20, right: 10),
+            child: pw.Column(
+              children: [
+                _buildCalculationRow(
+                  'Discount (7%)',
+                  '-${invoice.discount.toStringAsFixed(0)}',
+                ),
+                _buildCalculationRow(
+                  'Oth Less',
+                  '-${invoice.otherDeductions.toStringAsFixed(0)}',
+                ),
+                _buildCalculationRow(
+                  'Freight',
+                  '+${invoice.freight.toStringAsFixed(2)}',
+                ),
+                _buildCalculationRow(
+                  'Taxable Value',
+                  invoice.taxableValue.toStringAsFixed(2),
+                ),
+                _buildCalculationRow(
+                  'I GST (2.5%)',
+                  '+${invoice.igstAmount.toStringAsFixed(2)}',
+                ),
+                _buildCalculationRow(
+                  'S GST (2.5%)',
+                  '+${invoice.sgstAmount.toStringAsFixed(2)}',
+                ),
+                _buildCalculationRow(
+                  'C GST (2.5%)',
+                  '+${invoice.cgstAmount.toStringAsFixed(2)}',
+                ),
+              ],
+            ),
+          ),
+          pw.Spacer(),
+          pw.Container(
+            padding: const pw.EdgeInsets.only(left: 20, right: 10),
+            height: 25,
+            decoration: pw.BoxDecoration(
+              borderRadius: bm.onlyBottomRightRadius,
+              color: PdfColor.fromHex('#F2F2F2'),
+              border: bm.allSides,
+            ),
+            child: _buildCalculationRow(
+              'Net Amount',
+              invoice.netAmount.toStringAsFixed(2),
+              isHeader: true,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  static pw.TableRow _buildCalculationRow(
+  static pw.Row _buildCalculationRow(
     String label,
     String value, {
     bool isHeader = false,
   }) {
-    return pw.TableRow(
-      decoration: isHeader
-          ? const pw.BoxDecoration(color: PdfColors.grey200)
-          : null,
+    return pw.Row(
+      // decoration: isHeader
+      //     ? const pw.BoxDecoration(color: PdfColors.grey200)
+      //     : null,
+      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
       children: [
         pw.Container(
           padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 3),
@@ -938,8 +1007,8 @@ class BorderMaster {
 
   pw.BorderRadius get topRadius {
     return pw.BorderRadius.only(
-      topLeft: pw.Radius.circular(radius),
-      topRight: pw.Radius.circular(radius),
+      topLeft: pw.Radius.circular(5),
+      topRight: pw.Radius.circular(5),
     );
   }
 
@@ -966,6 +1035,50 @@ class BorderMaster {
 
   pw.BorderRadius get allRadius {
     return pw.BorderRadius.all(pw.Radius.circular(radius));
+  }
+
+  // Here are the normal borders without radius
+
+  pw.Border get allSides {
+    return pw.Border.all(color: color, width: width);
+  }
+
+  pw.Border get topOnly {
+    return pw.Border(
+      top: pw.BorderSide(color: color, width: width),
+    );
+  }
+
+  pw.Border get bottomOnly {
+    return pw.Border(
+      bottom: pw.BorderSide(color: color, width: width),
+    );
+  }
+
+  pw.Border get leftOnly {
+    return pw.Border(
+      left: pw.BorderSide(color: color, width: width),
+    );
+  }
+
+  pw.Border get rightOnly {
+    return pw.Border(
+      right: pw.BorderSide(color: color, width: width),
+    );
+  }
+
+  pw.Border get horizontal {
+    return pw.Border(
+      top: pw.BorderSide(color: color, width: width),
+      bottom: pw.BorderSide(color: color, width: width),
+    );
+  }
+
+  pw.Border get vertical {
+    return pw.Border(
+      left: pw.BorderSide(color: color, width: width),
+      right: pw.BorderSide(color: color, width: width),
+    );
   }
 }
 
